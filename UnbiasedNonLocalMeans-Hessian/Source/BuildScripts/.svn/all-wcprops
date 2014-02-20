@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/unlmeans/!svn/ver/15/BuildScripts
+END
+CMakeSTANDALONE3BuildMacros.cmake
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/unlmeans/!svn/ver/15/BuildScripts/CMakeSTANDALONE3BuildMacros.cmake
+END
+CMakeBuildMacros.cmake
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/unlmeans/!svn/ver/15/BuildScripts/CMakeBuildMacros.cmake
+END
+PreventInSourceBuilds.cmake
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/unlmeans/!svn/ver/1/BuildScripts/PreventInSourceBuilds.cmake
+END

@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/unlmeans/!svn/ver/15/cmpb.source.code/NLM
+END
+itkNLMFilter.txx
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/unlmeans/!svn/ver/15/cmpb.source.code/NLM/itkNLMFilter.txx
+END
+NLM.cxx
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/unlmeans/!svn/ver/3/cmpb.source.code/NLM/NLM.cxx
+END
+itkNLMFilter.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/unlmeans/!svn/ver/15/cmpb.source.code/NLM/itkNLMFilter.h
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/unlmeans/!svn/ver/15/cmpb.source.code/NLM/CMakeLists.txt
+END
