@@ -62,13 +62,13 @@ public:
 	itkTypeMacro( NLMFilter, ImageToImageFilter );
   
 	/** Image typedef support. */
-	typedef typename InputImageType::PixelType           InputPixelType;
-	typedef typename OutputImageType::PixelType          OutputPixelType;
-	typedef typename InputImageType::RegionType          InputImageRegionType;
-	typedef typename InputImageType::SizeType            InputImageSizeType;
-	typedef typename InputImageType::IndexType           InputImageIndexType;
-	typedef typename InputImageType::SpacingType	     InputSpacingType;
-	typedef typename OutputImageType::RegionType         OutputImageRegionType;
+	typedef typename InputImageType::PixelType           	InputPixelType;
+	typedef typename OutputImageType::PixelType          	OutputPixelType;
+	typedef typename InputImageType::RegionType          	InputImageRegionType;
+	typedef typename InputImageType::SizeType            	InputImageSizeType;
+	typedef typename InputImageType::IndexType          	InputImageIndexType;
+	typedef typename InputImageType::SpacingType	   	InputSpacingType;
+	typedef typename OutputImageType::RegionType        	OutputImageRegionType;
 
 	/** EigenValue image support */
 	typedef itk::Image< double,TInputImage::ImageDimension > EigenValueImageType;
@@ -115,10 +115,19 @@ public:
 
 	typedef std::map< double, vnl_matrix<double> >  		  MatrixMapType;
 	typedef std::pair< double, vnl_matrix<double> > 		  MatrixPairType;
+	typedef std::map< std::vector<double>, vnl_matrix<double> >  	  BijMapType;
+	typedef std::pair< std::vector<double>, vnl_matrix<double> > 	  BijPairType;
+
 	typedef std::map< double, std::map< unsigned int, 
 	  std::vector<unsigned int> > >  		                  IndexVectorMapType;
+	typedef std::map< std::vector<double>, std::map< unsigned int, 
+	  std::vector<unsigned int> > >  		                  IndexBijMapType;
+
 	typedef std::pair< double, std::map< unsigned int, 
 	  std::vector<unsigned int> > > 				  IndexVectorPairType;
+	typedef std::pair< std::vector<double>, std::map< unsigned int, 
+	  std::vector<unsigned int> > >  		                  IndexBijPairType;
+
 	typedef std::map< double, double >  		    		  TraceMapType;
 	typedef std::pair< double, double > 				  TracePairType;
 	
@@ -231,9 +240,15 @@ private:
 	bool 		     m_UseDeltaFeatureStrength;
 
 	MatrixMapType	     m_BMatrixMap;
+	MatrixMapType	     m_RMatrixMap;
+	MatrixMapType	     m_XMatrixMap;
+
 	IndexVectorMapType   m_IndexVectorMap;
 	TraceMapType  	     m_TraceOrder0Map;
 	TraceMapType         m_TraceMaxOrderMap;
+
+	BijMapType	     m_BijMatrixMap;	
+	IndexBijMapType	     m_BijIndexMap;
 };
 
 

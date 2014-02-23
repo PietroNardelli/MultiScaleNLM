@@ -66,7 +66,7 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
   this->m_SymmetricEigenValueFilter = EigenAnalysisFilterType::New();
   this->m_SymmetricEigenValueFilter->SetDimension( ImageDimension );
   this->m_SymmetricEigenValueFilter->OrderEigenValuesBy(
-    EigenAnalysisFilterType::FunctorType::OrderByValue );//OrderByMagnitude?
+    EigenAnalysisFilterType::FunctorType::OrderByValue);//OrderByMagnitude?
 
   // Construct the rescale filter
   this->m_RescaleFilter = RescaleFilterType::New();
@@ -278,8 +278,9 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
   else
   {
     // Calculate unary functor filter.
-    this->m_UnaryFunctorFilter->SetInput(
+    this->m_UnaryFunctorFilter->SetInput( 
       this->m_SymmetricEigenValueFilter->GetOutput() );
+    this->m_UnaryFunctor->SetSigma( this->m_Sigma );
     this->m_UnaryFunctorFilter->Update();
   }
 

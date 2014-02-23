@@ -55,15 +55,18 @@ public:
   {
     return NumericTraits<TOutput>::Zero;
   }
+  itkSetMacro( Sigma, double );
+  itkGetMacro( Sigma, double );
+
 
 protected:
   UnaryFunctorBase(){};
   virtual ~UnaryFunctorBase(){};
+  double m_Sigma;
 
 private:
   UnaryFunctorBase(const Self &); // purposely not implemented
   void operator=(const Self &);   // purposely not implemented
-
 }; // end class UnaryFunctorBase
 
 } // end namespace itk::Functor

@@ -47,7 +47,7 @@ NLMFilter< TInputImage, TOutputImage >
         m_MaximumLevel 	     = 4.0;
         m_NumberOfLevelSteps = 5;
 	m_Order 	     = 2;
-	m_Alpha		     = 1;
+	m_Alpha		     = 1.0;
 
         m_scalesImage 	     = NULL;
 	m_strengthImage	     = NULL;
@@ -133,6 +133,7 @@ void NLMFilter< TInputImage, TOutputImage >
 	ImageRegionConstIterator<InputImageType>           searchIt;  		// Search iterator (search)
 	ImageRegionConstIterator<FeaturesMapType>          searchInFeaturesIt;  // Iterator for search in the map of local features (msit)
 	ImageRegionConstIterator<ScalesImageType> 	   scalesIt;		// Iterator for the scales image
+	ImageRegionConstIterator<ScalesImageType>          searchInScalesIt;    // Iterator for search in the scales image
 	ImageRegionConstIterator<EigenValueImageType> 	   strengthIt;		// Iterator for the strength image
 	ImageRegionConstIterator<EigenValueImageType> 	   searchInStrengthIt;	// Iterator for search in the strength image
 
@@ -169,6 +170,13 @@ void NLMFilter< TInputImage, TOutputImage >
 	double deltaStrengthMean;
         double *distance = new double[numNeighbours];
         double *deltaStrength = new double[numNeighbours];
+
+	double *value = new double[dim];
+
+	unsigned int N = 1;
+	for( unsigned int d=0; d<TInputImage::ImageDimension; ++d ){ // The number of voxels which are going to be accounted in the WA
+		N *= ( 2*m_RComp[d] + 1 );
+	}
 	//==================================================================================================================================
 	for( outputIt.GoToBegin(),featuresIt.GoToBegin(),scalesIt.GoToBegin(),strengthIt.GoToBegin(); !featuresIt.IsAtEnd(); ++outputIt,++featuresIt,++scalesIt, ++strengthIt)
 	{
@@ -208,7 +216,8 @@ void NLMFilter< TInputImage, TOutputImage >
 		searchRegion.SetSize( searchSize );
 		searchIt   = ImageRegionConstIterator<InputImageType>(              input,           searchRegion  );
 		searchInFeaturesIt = ImageRegionConstIterator<FeaturesMapType>(     m_Features,      searchRegion  ); 
-		searchInStrengthIt = ImageRegionConstIterator<EigenValueImageType>( m_strengthImage, searchRegion );
+		searchInStrengthIt = ImageRegionConstIterator<EigenValueImageType>( m_strengthImage, searchRegion  );
+		searchInScalesIt   = ImageRegionConstIterator<ScalesImageType>(     m_scalesImage,   searchRegion  ); 
 
 		//-------------------------------------------------------------------------------------------------------------
 		// FILTER THE PIXEL
@@ -241,22 +250,47 @@ void NLMFilter< TInputImage, TOutputImage >
 		{
 			tho1 *= (m_RComp[0]*2+1);
 		}
-		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(); !searchIt.IsAtEnd(); ++searchIt,++searchInFeaturesIt,++pos,++searchInStrengthIt )
+		tho1 = 2000;
+
+		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(), searchInScalesIt; 
+		     !searchIt.IsAtEnd(); 
+                     ++searchIt,++searchInFeaturesIt,++pos,++searchInStrengthIt, ++searchInScalesIt)
 		{
                         distance[pos]=0.0;
 			deltaStrength[pos]=0.0;
 			if( pos!=midPosition )
 			{
-				VariableVectorType  value = searchInFeaturesIt.Get();
+				double valueScale = searchInScalesIt.Get();
+				std::vector<double> sigmasCouple;
+				sigmasCouple.push_back(centerScale);	
+				sigmasCouple.push_back(valueScale);					
+				vnl_matrix<double>  B_ij  = m_BijMatrixMap[sigmasCouple];
+				std::map< unsigned int, std::vector<unsigned int> > BijIndMap = m_BijIndexMap[sigmasCouple];
+
+				VariableVectorType  originalValue = searchInFeaturesIt.Get();
+
+				for( unsigned int row = 0; row < B_ij.rows(); row++ )
+				{
+					value[row] = 0.0;
+					std::vector<unsigned int> columns = BijIndMap[row];
+					for( unsigned int index = 0; index < columns.size(); index++ )
+					{
+						value[row] += B_ij(row,columns[index]) * ( originalValue[columns[index]] );
+					}
+				}
+
+				//VariableVectorType  value = searchInFeaturesIt.Get();
 				double valueStrength = searchInStrengthIt.Get();
-                                distance[pos]=(center[0] - value[0]) * (value[0] - center[0]);
+
+                                distance[pos] = (center[0] - value[0]) * (value[0] - center[0]);
+
 				//If distance based on order 0 is small enough, we compute it using the selected order.
 				// Otherwise, we use order zero as a good approximation.
                                 if (distance[pos] > -tho0)
 				{
 					for( unsigned int row = 0; row < BMatrix.rows(); row++ )
 					{
-						firstProduct[row] = 0;
+						firstProduct[row] = 0.0;
 						std::vector<unsigned int> columns = indexMap[row];
 						for( unsigned int index = 0; index < columns.size(); index++ )
 						{
@@ -268,11 +302,11 @@ void NLMFilter< TInputImage, TOutputImage >
 						distance[pos] += ( center[row] - value[row] ) * firstProduct[row];
 					}
 				}
+				//distance[pos] = distance[pos] / N; //correct??
 				distanceMean +=distance[pos];
 				deltaStrength[pos] = vnl_math_abs( centerStrength - valueStrength);
 				deltaStrengthMean += deltaStrength[pos];
-				
-	
+
 			}
 			else
 			{
@@ -281,10 +315,11 @@ void NLMFilter< TInputImage, TOutputImage >
 			}
 		}
 
-		distanceMean = 1.0/distanceMean/numNeighbours;
+		distanceMean = vnl_math_abs(distanceMean/numNeighbours);
+		distanceMean = 1 / distanceMean;
+		std::cout<<distanceMean<<std::endl;
 		deltaStrengthMean = deltaStrengthMean/numNeighbours;
 		deltaStrengthMean = 1.0/deltaStrengthMean;
-
 		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(); !searchIt.IsAtEnd(); ++searchIt,++searchInFeaturesIt,++pos,++searchInStrengthIt )
 		{
 		        weight = itk::NumericTraits<double>::Zero;
@@ -338,7 +373,7 @@ void NLMFilter< TInputImage, TOutputImage >
 						if (m_UseDeltaFeatureStrength)
 						{
 							weight -= m_Alpha * deltaStrength[pos] * deltaStrengthMean; // because negative weight!!
-						}	
+						}
 						//==========================================================================
 						// Computing the exponential is painfully slow; instead, a rational approxima-
 						// tion may be taken that very closely fits the exponential curve in the range
@@ -373,6 +408,7 @@ void NLMFilter< TInputImage, TOutputImage >
   delete [] firstProduct;
   delete [] distance;
   delete [] deltaStrength;
+  delete [] value;	
 }
 
 /**
@@ -383,6 +419,8 @@ void NLMFilter< TInputImage, TOutputImage >
 ::ComputeFeatures()
 {
 	unsigned int imageDimension = TInputImage::ImageDimension;
+	InputSpacingType spacing = this->GetInput()->GetSpacing();
+
         OutputImageRegionType outputRegion = this->GetOutput()->GetBufferedRegion();
 	
   	MultiScaleFilterPointer multiScaleFilter = MultiScaleFilterType::New();
@@ -399,6 +437,16 @@ void NLMFilter< TInputImage, TOutputImage >
 
     	//Setup the functor and connect it to the filter.    
       	FunctorPointer functor = FunctorType::New();
+  	const double pi = vnl_math::pi;
+  	double sqrtProduct = vcl_sqrt( 2 * pi);
+	double functorSpacing = 1;
+	for( unsigned int i = 0; i < imageDimension; i++)
+	{
+		functorSpacing *= spacing[i]*spacing[i];
+	}
+  	double threshold = ( sqrtProduct * m_Sigma) / functorSpacing;
+	functor->SetThreshold( threshold );
+
       	multiScaleFilter->SetUnaryFunctor( functor );
 	multiScaleFilter->SetGenerateScalesOutput( 1 );
 	multiScaleFilter->Update();
@@ -525,8 +573,9 @@ void NLMFilter< TInputImage, TOutputImage >
 	
 	for( unsigned int level = 0; level < this->m_NumberOfLevelSteps; level++ )  
 	{
-
 		// Compute X Matrix (note that we are multiplying by spacing and dividing by sigmaValue to de-normalize the derivatives coming from the multiscale filtering) 
+      		sigmaValue = this->m_MinimumLevel + stepSize * level;
+		
 		vnl_matrix<double>XMatrix(size,XColumns);
 		XMatrix = itk::NumericTraits<double>::Zero;  
 	
@@ -578,8 +627,6 @@ void NLMFilter< TInputImage, TOutputImage >
 
 		double norm = itk::NumericTraits<double>::Zero;
 
-      		sigmaValue = this->m_MinimumLevel + stepSize * level;
-
 		for( unsigned int row = 0; row < size; row++ ) 
 		{
 			idx = bit.GetOffset( row );
@@ -599,7 +646,7 @@ void NLMFilter< TInputImage, TOutputImage >
 		norm  = 1.0/norm;
 		RMatrix = RMatrix * norm;
 
-		BMatrix = XMatrix.transpose() * RMatrix * XMatrix;
+		BMatrix = XMatrix.transpose() * RMatrix * RMatrix * XMatrix; 
 		
 		std::map< unsigned int,std::vector<unsigned int> >  indexMap;
 
@@ -618,7 +665,10 @@ void NLMFilter< TInputImage, TOutputImage >
 		}
 
 		m_IndexVectorMap.insert( IndexVectorPairType(sigmaValue,indexMap) );
-		m_BMatrixMap.insert( MatrixPairType(sigmaValue,BMatrix) );	
+		m_BMatrixMap.insert( MatrixPairType(sigmaValue,BMatrix) );
+
+ 		m_RMatrixMap.insert( MatrixPairType(sigmaValue,RMatrix) );  
+ 		m_XMatrixMap.insert( MatrixPairType(sigmaValue,XMatrix) );  		
 
 		// Compute trace for order 0
 		double trace0 = vnl_trace<double>(RMatrix);
@@ -633,7 +683,58 @@ void NLMFilter< TInputImage, TOutputImage >
 		TMatrix = RMatrix * pMatrix;
 		double trace2 = vnl_trace<double>(TMatrix);
 		m_TraceMaxOrderMap.insert( TracePairType(sigmaValue, trace2) );
-	}	
+	}
+
+	/* Compute Bij 	**/
+	double sigmaValue_i = this->m_MinimumLevel;
+      	double sigmaValue_j = this->m_MinimumLevel;
+	//typedef std::pair< unsigned int, std::vector<unsigned int> > indexPairType;
+	//double v[2];// = {sigmaValue_i,sigmaValue_j};
+	for( unsigned int i = 0; i < this->m_NumberOfLevelSteps; i++ )  
+	{
+      		sigmaValue_i = this->m_MinimumLevel + stepSize * i;
+		
+		vnl_matrix<double> B_i = m_BMatrixMap[sigmaValue_i];
+		vnl_matrix<double> R_i = m_RMatrixMap[sigmaValue_i];
+		vnl_matrix<double> X_i = m_XMatrixMap[sigmaValue_i];
+
+		for( unsigned int j = 0; j < this->m_NumberOfLevelSteps; j++ )  //from 0?
+		{
+      			sigmaValue_j = this->m_MinimumLevel + stepSize * j;
+
+			vnl_matrix<double> R_j = m_RMatrixMap[sigmaValue_j];
+			vnl_matrix<double> X_j = m_XMatrixMap[sigmaValue_j];
+
+			vnl_matrix<double> p = R_j * X_j;
+			vnl_matrix<double> k = R_i * p;
+			vnl_matrix<double> e = X_i.transpose() * k;
+			vnl_matrix<double> inverse = vnl_matrix_inverse<double>(B_i);
+			vnl_matrix<double> B_ij = inverse * e; 
+
+			std::map< unsigned int,std::vector<unsigned int> >  indexMap;
+
+			for( unsigned int row = 0; row < B_ij.rows(); ++row )
+			{
+				std::vector< unsigned int > nonZeros;
+				for( unsigned int column = 0; column < B_ij.columns(); column++ )
+				{
+					if( B_ij(row,column) > 0.0001 )
+					{		
+						nonZeros.push_back( column );							
+					}
+				}
+
+				indexMap.insert( indexPairType(row, nonZeros) );
+			}
+
+			std::vector<double> sigmaCouple;
+			sigmaCouple.push_back(sigmaValue_i);
+			sigmaCouple.push_back(sigmaValue_j);
+			m_BijMatrixMap.insert( BijPairType(sigmaCouple , B_ij) );
+			m_BijIndexMap.insert( IndexBijPairType(sigmaCouple,indexMap) );
+
+		}
+        }
 }
 
 /**

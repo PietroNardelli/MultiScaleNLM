@@ -79,11 +79,11 @@ public:
   /** Gradient magnitude filter type, since e.g. the strain energy vesselness
    * is not only a function of the Hessian, but also of the first order derivatives.
    */
-  typedef OutputPixelType                         GradientMagnitudePixelType;
+  typedef OutputPixelType                         	GradientMagnitudePixelType;
   typedef Image< GradientMagnitudePixelType,
-    itkGetStaticConstMacro( ImageDimension ) >    GradientMagnitudeImageType;
+    itkGetStaticConstMacro( ImageDimension ) >    	GradientMagnitudeImageType;
   typedef GradientMagnitudeRecursiveGaussianImageFilter<
-    InputImageType, GradientMagnitudeImageType >  GradientMagnitudeFilterType;
+    InputImageType, GradientMagnitudeImageType >  	GradientMagnitudeFilterType;
 
   /** Gaussian(Mean) filter type */
   typedef RecursiveGaussianImageFilter<
@@ -98,13 +98,13 @@ public:
 
 
   /** Gradient filter type */
-  typedef OutputPixelType                         GradientPixelType;
+  typedef OutputPixelType                         	GradientPixelType;
   typedef Image< FixedArray< 
     GradientPixelType,
     itkGetStaticConstMacro( ImageDimension ) >,
-    itkGetStaticConstMacro( ImageDimension ) >    GradientImageType;
+    itkGetStaticConstMacro( ImageDimension ) >    	GradientImageType;
   typedef GradientRecursiveGaussianImageFilter<
-    InputImageType, GradientImageType >           GradientFilterType;
+    InputImageType, GradientImageType >          	GradientFilterType;
   
   /** Hessian filter type */
   typedef Image<SymmetricSecondRankTensor<
@@ -118,27 +118,27 @@ public:
 
   /** EigenValue analysis filter */
   typedef FixedArray< OutputPixelType,
-    itkGetStaticConstMacro( ImageDimension ) >    EigenValueArrayType;
+    itkGetStaticConstMacro( ImageDimension ) >    	EigenValueArrayType;
   typedef Image< EigenValueArrayType,
-    itkGetStaticConstMacro( ImageDimension ) >    EigenValueImageType;
+    itkGetStaticConstMacro( ImageDimension ) >    	EigenValueImageType;
   typedef SymmetricEigenAnalysisImageFilter<
-    HessianTensorImageType, EigenValueImageType > EigenAnalysisFilterType;
+    HessianTensorImageType, EigenValueImageType > 	EigenAnalysisFilterType;
 
   /** Rescale filter type */
   typedef RescaleIntensityImageFilter<
-    OutputImageType, OutputImageType >            RescaleFilterType;
+    OutputImageType, OutputImageType >            	RescaleFilterType;
 
   /** Unary functor filter type */
   typedef UnaryFunctorImageFilter2<
     EigenValueImageType,
-    OutputImageType >                             UnaryFunctorImageFilterType;
+    OutputImageType >                             	    UnaryFunctorImageFilterType;
   typedef typename UnaryFunctorImageFilterType::FunctorType UnaryFunctorBaseType;
 
   /** Binary functor filter type */
   typedef BinaryFunctorImageFilter2<
     GradientMagnitudeImageType,
     EigenValueImageType,
-    OutputImageType >                             BinaryFunctorImageFilterType;
+    OutputImageType >                             	     BinaryFunctorImageFilterType;
   typedef typename BinaryFunctorImageFilterType::FunctorType BinaryFunctorBaseType;
 
   /** Set/Get unary functor filter */
@@ -166,8 +166,8 @@ public:
   /** Set the number of threads to create when executing. */
   void SetNumberOfThreads( ThreadIdType nt );
 
-  const GaussianLastImageType* GetGaussianImage( void ) const;
-  const GradientImageType* GetGradientImage( void ) const;
+  const GaussianLastImageType* 	GetGaussianImage( void ) const;
+  const GradientImageType* 	GetGradientImage( void ) const;
   const HessianTensorImageType* GetHessianImage( void ) const;
 
 
