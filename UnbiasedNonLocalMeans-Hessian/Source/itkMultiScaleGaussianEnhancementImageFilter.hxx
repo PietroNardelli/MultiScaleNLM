@@ -198,12 +198,12 @@ MultiScaleGaussianEnhancementImageFilter< TInputImage, TOutputImage >
     scalesImage->Allocate();
     scalesImage->FillBuffer( itk::NumericTraits<ScalesPixelType>::Zero );
 
-    /*typename GaussianImageType::Pointer gaussianImage
+    typename GaussianImageType::Pointer gaussianImage
       = dynamic_cast<GaussianImageType*>( this->ProcessObject::GetOutput( 2 ) );
 
     gaussianImage->SetBufferedRegion( gaussianImage->GetRequestedRegion() );
     gaussianImage->Allocate();
-    gaussianImage->FillBuffer( itk::NumericTraits<GaussianPixelType>::Zero );*/
+    gaussianImage->FillBuffer( itk::NumericTraits<GaussianPixelType>::Zero );
 
     typename GradientImageType::Pointer gradientImage
       = dynamic_cast<GradientImageType*>( this->ProcessObject::GetOutput( 3 ) );
@@ -244,16 +244,17 @@ MultiScaleGaussianEnhancementImageFilter< TInputImage, TOutputImage >
     this->m_GaussianEnhancementFilter->SetSigma( sigma );
     this->m_GaussianEnhancementFilter->Update();
 
-    if( sigma == m_SigmaMinimum )
+    /*if( sigma == m_SigmaMinimum )
     {
 	this->GraftNthOutput(2, const_cast<GaussianImageType*>( this->m_GaussianEnhancementFilter->GetGaussianImage() ) );
-    }
+    }*/
 
     this->m_GaussianEnhancementFilter->GetGaussianImage(),
     // Get the maximum so far.
     this->UpdateMaximumResponse( this->m_GaussianEnhancementFilter->GetOutput(), scaleLevel, 
+				 this->m_GaussianEnhancementFilter->GetGaussianImage(),
                                  this->m_GaussianEnhancementFilter->GetGradientImage(),
-                                 this->m_GaussianEnhancementFilter->GetHessianImage() ); //this->m_GaussianEnhancementFilter->GetGaussianImage(),
+                                 this->m_GaussianEnhancementFilter->GetHessianImage() ); //
     scaleLevel++;
   }
 } // end GenerateData()
@@ -269,8 +270,9 @@ MultiScaleGaussianEnhancementImageFilter< TInputImage, TOutputImage >
 ::UpdateMaximumResponse(
   const OutputImageType *seOutput,
   const unsigned int &scaleLevel, 
+  const GaussianImageType *seGaussian,
   const GradientImageType *seGradient, 
-  const HessianTensorImageType *seHessian ) //const GaussianImageType *seGaussian,
+  const HessianTensorImageType *seHessian ) //
 {
   // Generate the scales output.
   if ( this->m_GenerateScalesOutput )
@@ -284,9 +286,9 @@ MultiScaleGaussianEnhancementImageFilter< TInputImage, TOutputImage >
     ImageRegionIterator<ScalesImageType> scalesIter( scalesImage, outputRegion );
  
     // Gaussian
-    /*typename GaussianImageType::Pointer gaussianImage
+    typename GaussianImageType::Pointer gaussianImage
       = static_cast<GaussianImageType*>( this->ProcessObject::GetOutput( 2 ) );
-    ImageRegionIterator<GaussianImageType> gaussianIter( gaussianImage, outputRegion );*/
+    ImageRegionIterator<GaussianImageType> gaussianIter( gaussianImage, outputRegion );
 
     // Gradient
     typename GradientImageType::Pointer gradientImage
@@ -301,19 +303,19 @@ MultiScaleGaussianEnhancementImageFilter< TInputImage, TOutputImage >
     ImageRegionConstIterator<OutputImageType> prevMaxResponseIter( this->GetOutput(), outputRegion );
     ImageRegionConstIterator<OutputImageType> currentResponseIter( seOutput, outputRegion );
 
-    //ImageRegionConstIterator<GaussianImageType> gaussianCurrentIter( seGaussian, outputRegion );
+    ImageRegionConstIterator<GaussianImageType> gaussianCurrentIter( seGaussian, outputRegion );
     ImageRegionConstIterator<GradientImageType> gradientCurrentIter( seGradient, outputRegion );
     ImageRegionConstIterator<HessianTensorImageType> hessianCurrentIter( seHessian, outputRegion );    
 
     scalesIter.GoToBegin();
-    //gaussianIter.GoToBegin();
+    gaussianIter.GoToBegin();
     gradientIter.GoToBegin();
     hessianIter.GoToBegin();
 
     prevMaxResponseIter.GoToBegin();
     currentResponseIter.GoToBegin();
 
-    //gaussianCurrentIter.GoToBegin();
+    gaussianCurrentIter.GoToBegin();
     gradientCurrentIter.GoToBegin();
     hessianCurrentIter.GoToBegin();
 
@@ -323,12 +325,12 @@ MultiScaleGaussianEnhancementImageFilter< TInputImage, TOutputImage >
       if ( prevMaxResponseIter.Value() < currentResponseIter.Value() )
       {
         scalesIter.Set( static_cast<ScalesPixelType>( sigma ) );
-	//gaussianIter.Set( gaussianCurrentIter.Value() );
+	gaussianIter.Set( gaussianCurrentIter.Value() );
 	gradientIter.Set( gradientCurrentIter.Value() );
         hessianIter.Set( hessianCurrentIter.Value() );
       }
       ++scalesIter; ++prevMaxResponseIter; ++currentResponseIter; 
-      //++gaussianIter; ++gaussianCurrentIter;
+      ++gaussianIter; ++gaussianCurrentIter;
       ++gradientIter; ++gradientCurrentIter;
       ++hessianIter;++hessianCurrentIter;
     }

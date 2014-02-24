@@ -148,8 +148,8 @@ int DoIt( int argc, char * argv[], PixelType )
 	filter->SetOrder( iOrder );
 	filter->SetAlpha( iAlpha );
 	filter->SetUseEstimatedDistanceMean(1); //fix this!
-	filter->SetNormalizedByFeatureStrength(1); //fix this!
-	filter->SetUseDeltaFeatureStrength(1); //fix this!
+	filter->SetNormalizedByFeatureStrength(0); //fix this!
+	filter->SetUseDeltaFeatureStrength(0); //fix this!
 
 	if(scalesImageVolume.c_str() != std::string("None"))
 	{

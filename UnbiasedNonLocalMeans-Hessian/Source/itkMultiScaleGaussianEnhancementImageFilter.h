@@ -229,8 +229,9 @@ private:
   void UpdateMaximumResponse(
     const OutputImageType * seOutput,
     const unsigned int & scaleLevel, 
+    const GaussianImageType * seGaussian,
     const GradientImageType * seGradient,
-    const HessianTensorImageType * seHessian);  //const GaussianImageType * seGaussian,
+    const HessianTensorImageType * seHessian);  //
 
   /** Compute the current sigma. */
   double ComputeSigmaValue( const unsigned int & scaleLevel );
