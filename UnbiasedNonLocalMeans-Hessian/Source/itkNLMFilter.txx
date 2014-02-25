@@ -246,7 +246,7 @@ void NLMFilter< TInputImage, TOutputImage >
 		}
 		tho1 = 2000;*/
 
-		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(), searchInScalesIt; 
+		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(), searchInScalesIt.GoToBegin();
 		     !searchIt.IsAtEnd(); 
                      ++searchIt,++searchInFeaturesIt,++pos,++searchInStrengthIt, ++searchInScalesIt)
 		{
@@ -276,11 +276,11 @@ void NLMFilter< TInputImage, TOutputImage >
 				//VariableVectorType  value = searchInFeaturesIt.Get();
 				double valueStrength = searchInStrengthIt.Get();
 
-                                double tmp = (center[0] - value[0]) * (value[0] - center[0]);
+        double tmp = (center[0] - value[0]) * (value[0] - center[0]);
 
 				//If distance based on order 0 is small enough, we compute it using the selected order.
 				// Otherwise, we use order zero as a good approximation.
-                                if (tmp > -tho0)
+        if (tmp > -tho0)
 				{
 					for( unsigned int row = 0; row < BMatrix.rows(); row++ )
 					{
