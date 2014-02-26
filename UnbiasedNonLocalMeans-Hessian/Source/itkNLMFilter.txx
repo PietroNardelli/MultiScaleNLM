@@ -222,7 +222,7 @@ void NLMFilter< TInputImage, TOutputImage >
 		double 		    centerStrength = strengthIt.Get();
 
 		double norm         = itk::NumericTraits<double>::Zero;    // To normalize the weights to sum to 1
-		double meanDistance = itk::NumericTraits<double>::Zero;    // To instead of normNoise
+		double meanDistance = itk::NumericTraits<double>::Zero;    // To use instead of normNoise
 		double filtered     = itk::NumericTraits<double>::Zero;
 		double normStrength = itk::NumericTraits<double>::Zero;
 
@@ -246,7 +246,7 @@ void NLMFilter< TInputImage, TOutputImage >
 		}
 		tho1 = 2000;*/
 
-		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(), searchInScalesIt; 
+		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(), searchInScalesIt.GoToBegin();
 		     !searchIt.IsAtEnd(); 
                      ++searchIt,++searchInFeaturesIt,++pos,++searchInStrengthIt, ++searchInScalesIt)
 		{
@@ -275,12 +275,11 @@ void NLMFilter< TInputImage, TOutputImage >
 
 				//VariableVectorType  value = searchInFeaturesIt.Get();
 				double valueStrength = searchInStrengthIt.Get();
-
-                                double tmp = (center[0] - value[0]) * (value[0] - center[0]);
+        			double tmp = (center[0] - value[0]) * (value[0] - center[0]);// This should be computed slightly differently to account for Bij
 
 				//If distance based on order 0 is small enough, we compute it using the selected order.
 				// Otherwise, we use order zero as a good approximation.
-                                if (tmp > -tho0)
+        			if (tmp > -tho0)
 				{
 					for( unsigned int row = 0; row < BMatrix.rows(); row++ )
 					{
@@ -296,10 +295,13 @@ void NLMFilter< TInputImage, TOutputImage >
 						distance[pos] += ( center[row] - value[row] ) * firstProduct[row];
 					}
 				}
+				else
+				{
+					distance[pos] = tmp;
+				}
 				distanceMean +=distance[pos];
 				deltaStrength[pos] = vnl_math_abs( centerStrength - valueStrength);
 				deltaStrengthMean += deltaStrength[pos];
-
 			}
 			else
 			{
@@ -312,12 +314,11 @@ void NLMFilter< TInputImage, TOutputImage >
 		distanceMean = 1 / distanceMean;
 		deltaStrengthMean = deltaStrengthMean/numNeighbours;
 		deltaStrengthMean = 1.0/deltaStrengthMean;
-		for( pos=0,searchIt.GoToBegin(),searchInFeaturesIt.GoToBegin(), searchInStrengthIt.GoToBegin(); !searchIt.IsAtEnd(); ++searchIt,++searchInFeaturesIt,++pos,++searchInStrengthIt )
+		for( pos=0,searchIt.GoToBegin(), searchInStrengthIt.GoToBegin(); !searchIt.IsAtEnd(); ++searchIt,++pos,++searchInStrengthIt )
 		{
 		        weight = itk::NumericTraits<double>::Zero;
 			if( pos!=midPosition )
 			{
-				VariableVectorType  value = searchInFeaturesIt.Get();
 				double valueStrength = searchInStrengthIt.Get();
 				normStrength = 1.0;
 				if (m_NormalizedByFeatureStrength)
@@ -675,8 +676,7 @@ void NLMFilter< TInputImage, TOutputImage >
 	/* Compute Bij 	**/
 	double sigmaValue_i = this->m_MinimumLevel;
       	double sigmaValue_j = this->m_MinimumLevel;
-	//typedef std::pair< unsigned int, std::vector<unsigned int> > indexPairType;
-	//double v[2];// = {sigmaValue_i,sigmaValue_j};
+
 	for( unsigned int i = 0; i < this->m_NumberOfLevelSteps; i++ )  
 	{
       		sigmaValue_i = this->m_MinimumLevel + stepSize * i;
@@ -719,7 +719,6 @@ void NLMFilter< TInputImage, TOutputImage >
 			sigmaCouple.push_back(sigmaValue_j);
 			m_BijMatrixMap.insert( BijPairType(sigmaCouple , B_ij) );
 			m_BijIndexMap.insert( IndexBijPairType(sigmaCouple,indexMap) );
-
 		}
         }
 }
