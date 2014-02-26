@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pietro/projects/UnbiasedNonLocalMeans-Hessian/Build/SlicerExecutionModel/GenerateCLP/GenerateCLPLauncher.c
+itksys/SharedForward.h
+-
+
+/net/th914_nas.bwh.harvard.edu/mnt/array1/share/Software/Slicer4.3Build-Relase/ITKv4-build/Modules/ThirdParty/KWSys/src/itksys/SharedForward.h
+itksys/SharedForward.h
+-
+stddef.h
+-
+limits.h
+-
+stdlib.h
+-
+string.h
+-
+errno.h
+-
+stdio.h
+-
+io.h
+-
+windows.h
+-
+process.h
+-
+unistd.h
+-
+sys/stat.h
+-
+sys/isa_defs.h
+-
+
