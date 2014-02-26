@@ -276,7 +276,7 @@ void NLMFilter< TInputImage, TOutputImage >
 				//VariableVectorType  value = searchInFeaturesIt.Get();
 				double valueStrength = searchInStrengthIt.Get();
 
-        double tmp = (center[0] - value[0]) * (value[0] - center[0]);
+        double tmp = (center[0] - value[0]) * (value[0] - center[0]);  // THis hsould be computed slightly differently to account for Bij
 
 				//If distance based on order 0 is small enough, we compute it using the selected order.
 				// Otherwise, we use order zero as a good approximation.
@@ -296,6 +296,10 @@ void NLMFilter< TInputImage, TOutputImage >
 						distance[pos] += ( center[row] - value[row] ) * firstProduct[row];
 					}
 				}
+        else
+        {
+          distance[pos] = tmp; 
+        }
 				distanceMean +=distance[pos];
 				deltaStrength[pos] = vnl_math_abs( centerStrength - valueStrength);
 				deltaStrengthMean += deltaStrength[pos];
