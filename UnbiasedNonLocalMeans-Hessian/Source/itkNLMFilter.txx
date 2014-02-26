@@ -233,6 +233,8 @@ void NLMFilter< TInputImage, TOutputImage >
 		
 		vnl_matrix<double> BMatrix = m_BMatrixMap[centerScale];
 		std::map< unsigned int, std::vector<unsigned int> > indexMap = m_IndexVectorMap[centerScale];
+	
+		double B_i_Ord0 = m_BiOrd0Map[centerScale];
 
 		double trace0 = m_TraceOrder0Map[centerScale];
 		double traceMaxOrder = m_TraceMaxOrderMap[centerScale];
@@ -258,29 +260,31 @@ void NLMFilter< TInputImage, TOutputImage >
 				std::vector<double> sigmasCouple;
 				sigmasCouple.push_back(centerScale);	
 				sigmasCouple.push_back(valueScale);					
-				vnl_matrix<double>  B_ij  = m_BijMatrixMap[sigmasCouple];
-				std::map< unsigned int, std::vector<unsigned int> > BijIndMap = m_BijIndexMap[sigmasCouple];
-
+		
 				VariableVectorType  originalValue = searchInFeaturesIt.Get();
 
-				for( unsigned int row = 0; row < B_ij.rows(); row++ )
-				{
-					value[row] = 0.0;
-					std::vector<unsigned int> columns = BijIndMap[row];
-					for( unsigned int index = 0; index < columns.size(); index++ )
-					{
-						value[row] += B_ij(row,columns[index]) * ( originalValue[columns[index]] );
-					}
-				}
+				double B_ij_Ord0 = m_BijOrd0Map[sigmasCouple];
 
-				//VariableVectorType  value = searchInFeaturesIt.Get();
-				double valueStrength = searchInStrengthIt.Get();
-        			double tmp = (center[0] - value[0]) * (value[0] - center[0]);// This should be computed slightly differently to account for Bij
+				double value_ord0 = B_ij_Ord0 * originalValue[0];
+				double tmp = (center[0] - value_ord0) * B_i_Ord0 * (value_ord0 - center[0]); // To get the proper distance for order 0		
 
 				//If distance based on order 0 is small enough, we compute it using the selected order.
 				// Otherwise, we use order zero as a good approximation.
         			if (tmp > -tho0)
 				{
+					vnl_matrix<double>  B_ij  = m_BijMatrixMap[sigmasCouple];
+					std::map< unsigned int, std::vector<unsigned int> > BijIndMap = m_BijIndexMap[sigmasCouple];
+
+					for( unsigned int row = 0; row < B_ij.rows(); row++ )
+					{
+						value[row] = 0.0;
+						std::vector<unsigned int> columns = BijIndMap[row];
+						for( unsigned int index = 0; index < columns.size(); index++ )
+						{
+							value[row] += B_ij(row,columns[index]) * ( originalValue[columns[index]] );
+						}
+					}
+
 					for( unsigned int row = 0; row < BMatrix.rows(); row++ )
 					{
 						firstProduct[row] = 0.0;
@@ -299,7 +303,10 @@ void NLMFilter< TInputImage, TOutputImage >
 				{
 					distance[pos] = tmp;
 				}
+
 				distanceMean +=distance[pos];
+
+				double valueStrength = searchInStrengthIt.Get();
 				deltaStrength[pos] = vnl_math_abs( centerStrength - valueStrength);
 				deltaStrengthMean += deltaStrength[pos];
 			}
@@ -631,6 +638,18 @@ void NLMFilter< TInputImage, TOutputImage >
 
 		BMatrix = XMatrix.transpose() * RMatrix * RMatrix * XMatrix; 
 		
+		/** Compute proper coefficients for order (from Bi) */
+		vnl_vector<double> XOrd0   = XMatrix.get_column(0);
+		vnl_vector<double> firstVector = RMatrix * RMatrix * XOrd0;
+		double BiOrd0 = 0.0;
+		for(unsigned int p=0; p<XOrd0.size();p++)
+		{
+			BiOrd0 +=  XOrd0[p] * firstVector[p];
+		}
+
+		m_BiOrd0Map.insert( BiOrd0PairType(sigmaValue,BiOrd0) );
+
+		/** Create a vector containing indeces of non-zero values in the BMatrix*/ 
 		std::map< unsigned int,std::vector<unsigned int> >  indexMap;
 
 		for( unsigned int row = 0; row < BMatrix.rows(); ++row )
@@ -676,6 +695,7 @@ void NLMFilter< TInputImage, TOutputImage >
 	/* Compute Bij 	**/
 	double sigmaValue_i = this->m_MinimumLevel;
       	double sigmaValue_j = this->m_MinimumLevel;
+	
 
 	for( unsigned int i = 0; i < this->m_NumberOfLevelSteps; i++ )  
 	{
@@ -714,11 +734,27 @@ void NLMFilter< TInputImage, TOutputImage >
 				indexMap.insert( indexPairType(row, nonZeros) );
 			}
 
+
 			std::vector<double> sigmaCouple;
 			sigmaCouple.push_back(sigmaValue_i);
 			sigmaCouple.push_back(sigmaValue_j);
 			m_BijMatrixMap.insert( BijPairType(sigmaCouple , B_ij) );
 			m_BijIndexMap.insert( IndexBijPairType(sigmaCouple,indexMap) );
+			
+			/** Compute proper coefficients for order (from Bi) */
+			vnl_vector<double> X_iOrd0     = X_i.get_column(0);
+			vnl_vector<double> X_jOrd0     = X_j.get_column(0);
+			vnl_vector<double> firstVector = R_i * R_j * X_jOrd0;
+
+			double BijOrd0 = 0.0;
+			for(unsigned int k=0; k<X_jOrd0.size();k++)
+			{
+				BijOrd0 +=  X_iOrd0[k] * firstVector[k];
+			}
+			double BiOrd0_inv = 1.0 / m_BiOrd0Map[sigmaValue_i];
+			BijOrd0 = BiOrd0_inv * BijOrd0;
+
+			m_BijOrd0Map.insert( BijOrd0PairType(sigmaCouple,BijOrd0) );
 		}
         }
 }

@@ -24,7 +24,6 @@
 
 #include "itkMultiScaleGaussianEnhancementImageFilter.h"
 #include "itkGeneralEigenValueFunctor.h"
-#include "itkEigenValueFunctor.h"
 #include "itkSymmetricSecondRankTensor.h"
 
 namespace itk
@@ -117,6 +116,12 @@ public:
 	typedef std::pair< double, vnl_matrix<double> > 		  MatrixPairType;
 	typedef std::map< std::vector<double>, vnl_matrix<double> >  	  BijMapType;
 	typedef std::pair< std::vector<double>, vnl_matrix<double> > 	  BijPairType;
+
+	typedef std::map< double, double >			  	  BiOrd0MapType;
+	typedef std::pair< double, double >			  	  BiOrd0PairType;
+
+	typedef std::map< std::vector<double>, double>		  	  BijOrd0MapType;
+	typedef std::pair< std::vector<double>, double > 		  BijOrd0PairType;
 
 	typedef std::map< double, std::map< unsigned int, 
 	  std::vector<unsigned int> > >  		                  IndexVectorMapType;
@@ -249,6 +254,9 @@ private:
 
 	BijMapType	     m_BijMatrixMap;	
 	IndexBijMapType	     m_BijIndexMap;
+	
+	BiOrd0MapType        m_BiOrd0Map;
+	BijOrd0MapType       m_BijOrd0Map;
 };
 
 

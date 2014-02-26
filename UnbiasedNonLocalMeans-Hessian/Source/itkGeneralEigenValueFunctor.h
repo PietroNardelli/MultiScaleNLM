@@ -15,7 +15,7 @@
 * limitations under the License.
 *
 *=========================================================================*/
-#ifndef __itkGeneralGeneralEigenValueFunctor_h
+#ifndef __itkGeneralEigenValueFunctor_h
 #define __itkGeneralEigenValueFunctor_h
 
 #include "itkUnaryFunctorBase.h"
