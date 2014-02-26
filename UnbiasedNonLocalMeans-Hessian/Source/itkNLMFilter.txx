@@ -265,20 +265,12 @@ void NLMFilter< TInputImage, TOutputImage >
 
 				double B_ij_Ord0 = m_BijOrd0Map[sigmasCouple];
 
-<<<<<<< HEAD
 				double value_ord0 = B_ij_Ord0 * originalValue[0];
 				double tmp = (center[0] - value_ord0) * B_i_Ord0 * (value_ord0 - center[0]); // To get the proper distance for order 0		
 
 				//If distance based on order 0 is small enough, we compute it using the selected order.
 				// Otherwise, we use order zero as a good approximation.
         			if (tmp > -tho0)
-=======
-        double tmp = (center[0] - value[0]) * (value[0] - center[0]);  // THis hsould be computed slightly differently to account for Bij
-
-				//If distance based on order 0 is small enough, we compute it using the selected order.
-				// Otherwise, we use order zero as a good approximation.
-        if (tmp > -tho0)
->>>>>>> fea06a4a770088ed0fc42831f1a6469989b2ef70
 				{
 					vnl_matrix<double>  B_ij  = m_BijMatrixMap[sigmasCouple];
 					std::map< unsigned int, std::vector<unsigned int> > BijIndMap = m_BijIndexMap[sigmasCouple];
@@ -307,18 +299,11 @@ void NLMFilter< TInputImage, TOutputImage >
 						distance[pos] += ( center[row] - value[row] ) * firstProduct[row];
 					}
 				}
-<<<<<<< HEAD
 				else
 				{
 					distance[pos] = tmp;
 				}
 
-=======
-        else
-        {
-          distance[pos] = tmp; 
-        }
->>>>>>> fea06a4a770088ed0fc42831f1a6469989b2ef70
 				distanceMean +=distance[pos];
 
 				double valueStrength = searchInStrengthIt.Get();
@@ -654,12 +639,14 @@ void NLMFilter< TInputImage, TOutputImage >
 		BMatrix = XMatrix.transpose() * RMatrix * RMatrix * XMatrix; 
 		
 		/** Compute proper coefficients for order (from Bi) */
-		vnl_vector<double> XOrd0   = XMatrix.get_column(0);
-		vnl_vector<double> firstVector = RMatrix * RMatrix * XOrd0;
+		//vnl_vector<double> XOrd0   = XMatrix.get_column(0);
+		//vnl_vector<double> firstVector = RMatrix * RMatrix * XOrd0;
+		vnl_matrix<double> RSquared = RMatrix * RMatrix;
 		double BiOrd0 = 0.0;
-		for(unsigned int p=0; p<XOrd0.size();p++)
+		for(unsigned int p = 0; p < size ;p++)
 		{
-			BiOrd0 +=  XOrd0[p] * firstVector[p];
+			//BiOrd0 +=  XOrd0[p] * firstVector[p];
+			BiOrd0 += RSquared(p,p);
 		}
 
 		m_BiOrd0Map.insert( BiOrd0PairType(sigmaValue,BiOrd0) );
@@ -757,14 +744,15 @@ void NLMFilter< TInputImage, TOutputImage >
 			m_BijIndexMap.insert( IndexBijPairType(sigmaCouple,indexMap) );
 			
 			/** Compute proper coefficients for order (from Bi) */
-			vnl_vector<double> X_iOrd0     = X_i.get_column(0);
-			vnl_vector<double> X_jOrd0     = X_j.get_column(0);
-			vnl_vector<double> firstVector = R_i * R_j * X_jOrd0;
-
+			//vnl_vector<double> X_iOrd0     = X_i.get_column(0);
+			//vnl_vector<double> X_jOrd0     = X_j.get_column(0);
+			//vnl_vector<double> firstVector = R_i * R_j * X_jOrd0;
+			vnl_matrix<double> R_ij	= R_i * R_j;
 			double BijOrd0 = 0.0;
-			for(unsigned int k=0; k<X_jOrd0.size();k++)
+			for(unsigned int k=0; k< size; k++)
 			{
-				BijOrd0 +=  X_iOrd0[k] * firstVector[k];
+				//BijOrd0 +=  X_iOrd0[k] * firstVector[k];
+				BijOrd0 += R_ij(k,k);
 			}
 			double BiOrd0_inv = 1.0 / m_BiOrd0Map[sigmaValue_i];
 			BijOrd0 = BiOrd0_inv * BijOrd0;

@@ -1,5 +1,0 @@
-/home/pietro/projects/UnbiasedNonLocalMeans-Hessian/Build/SlicerExecutionModel/GenerateCLP/CMakeFiles/GenerateCLP.dir
-/home/pietro/projects/UnbiasedNonLocalMeans-Hessian/Build/SlicerExecutionModel/GenerateCLP/CMakeFiles/GenerateCLPLauncher.dir
-/home/pietro/projects/UnbiasedNonLocalMeans-Hessian/Build/SlicerExecutionModel/ModuleDescriptionParser/CMakeFiles/ModuleDescriptionParser.dir
-/home/pietro/projects/UnbiasedNonLocalMeans-Hessian/Build/CMakeFiles/UnbiasedNonLocalMeans.dir
-/home/pietro/projects/UnbiasedNonLocalMeans-Hessian/Build/CMakeFiles/UnbiasedNonLocalMeans_Compare.dir
