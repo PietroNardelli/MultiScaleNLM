@@ -265,12 +265,20 @@ void NLMFilter< TInputImage, TOutputImage >
 
 				double B_ij_Ord0 = m_BijOrd0Map[sigmasCouple];
 
+<<<<<<< HEAD
 				double value_ord0 = B_ij_Ord0 * originalValue[0];
 				double tmp = (center[0] - value_ord0) * B_i_Ord0 * (value_ord0 - center[0]); // To get the proper distance for order 0		
 
 				//If distance based on order 0 is small enough, we compute it using the selected order.
 				// Otherwise, we use order zero as a good approximation.
         			if (tmp > -tho0)
+=======
+        double tmp = (center[0] - value[0]) * (value[0] - center[0]);  // THis hsould be computed slightly differently to account for Bij
+
+				//If distance based on order 0 is small enough, we compute it using the selected order.
+				// Otherwise, we use order zero as a good approximation.
+        if (tmp > -tho0)
+>>>>>>> fea06a4a770088ed0fc42831f1a6469989b2ef70
 				{
 					vnl_matrix<double>  B_ij  = m_BijMatrixMap[sigmasCouple];
 					std::map< unsigned int, std::vector<unsigned int> > BijIndMap = m_BijIndexMap[sigmasCouple];
@@ -299,11 +307,18 @@ void NLMFilter< TInputImage, TOutputImage >
 						distance[pos] += ( center[row] - value[row] ) * firstProduct[row];
 					}
 				}
+<<<<<<< HEAD
 				else
 				{
 					distance[pos] = tmp;
 				}
 
+=======
+        else
+        {
+          distance[pos] = tmp; 
+        }
+>>>>>>> fea06a4a770088ed0fc42831f1a6469989b2ef70
 				distanceMean +=distance[pos];
 
 				double valueStrength = searchInStrengthIt.Get();
