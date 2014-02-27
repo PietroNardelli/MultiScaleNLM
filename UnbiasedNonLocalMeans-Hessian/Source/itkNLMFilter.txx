@@ -580,7 +580,6 @@ void NLMFilter< TInputImage, TOutputImage >
 				XMatrix(row,column) = idx[column-1]*spacing[column-1]/sigmaValue;
 			}
 		}
-
 		if( order == 2 ) 
 		{
 			for( unsigned int row = 0; row < size; row++ )
@@ -588,12 +587,13 @@ void NLMFilter< TInputImage, TOutputImage >
 				idx = bit.GetOffset( row );
 				std::vector<double> values;
 				unsigned int column = imageDimension+1;
-				while( column < XColumns )
-				{
+				//while( column < XColumns )
+				//{
 					for( unsigned int k = 0; k < imageDimension; k++ )
 					{
 						for( unsigned int j = k; j < imageDimension; j++ )
 						{
+
 							if( j == k )
 							{
 								XMatrix(row,column) = 0.5*idx[k]*spacing[k]/sigmaValue*idx[j]*spacing[j]/sigmaValue;
@@ -606,7 +606,7 @@ void NLMFilter< TInputImage, TOutputImage >
 							}
 						}
 					}
-				}			
+				//}
 			}		
 		}
 		// Compute R and B Matrixes. They both depends on sigma value
@@ -636,17 +636,22 @@ void NLMFilter< TInputImage, TOutputImage >
 		norm  = 1.0/norm;
 		RMatrix = RMatrix * norm;
 
-		BMatrix = XMatrix.transpose() * RMatrix * RMatrix * XMatrix; 
+    //std::cout<<"sigma: "<<sigmaValue<<" Ri trace:"<<vnl_trace(RMatrix)<<std::endl;
+    
+    vnl_matrix<double> RXMatrix = RMatrix * XMatrix;
+		BMatrix = RXMatrix.transpose() * RXMatrix;
 		
+    //std::cout<<"sigma: "<<sigmaValue<<" Bi trace:"<<vnl_trace(BMatrix)<<std::endl;
+
 		/** Compute proper coefficients for order (from Bi) */
 		//vnl_vector<double> XOrd0   = XMatrix.get_column(0);
 		//vnl_vector<double> firstVector = RMatrix * RMatrix * XOrd0;
-		vnl_matrix<double> RSquared = RMatrix * RMatrix;
+		//vnl_matrix<double> RSquared = RMatrix * RMatrix;
 		double BiOrd0 = 0.0;
 		for(unsigned int p = 0; p < size ;p++)
 		{
 			//BiOrd0 +=  XOrd0[p] * firstVector[p];
-			BiOrd0 += RSquared(p,p);
+			BiOrd0 += RMatrix(p,p)*RMatrix(p,p);
 		}
 
 		m_BiOrd0Map.insert( BiOrd0PairType(sigmaValue,BiOrd0) );
@@ -654,7 +659,7 @@ void NLMFilter< TInputImage, TOutputImage >
 		/** Create a vector containing indeces of non-zero values in the BMatrix*/ 
 		std::map< unsigned int,std::vector<unsigned int> >  indexMap;
 
-		for( unsigned int row = 0; row < BMatrix.rows(); ++row )
+		for( unsigned int row = 0; row < BMatrix.rows(); row++ )
 		{
 			std::vector< unsigned int > nonZeros;
 			for( unsigned int column = 0; column < BMatrix.columns(); column++ )
@@ -671,7 +676,8 @@ void NLMFilter< TInputImage, TOutputImage >
 		m_BMatrixMap.insert( MatrixPairType(sigmaValue,BMatrix) );
 
  		m_RMatrixMap.insert( MatrixPairType(sigmaValue,RMatrix) );  
- 		m_XMatrixMap.insert( MatrixPairType(sigmaValue,XMatrix) );  		
+ 		m_XMatrixMap.insert( MatrixPairType(sigmaValue,XMatrix) );
+    
 
 		// Compute trace for order 0
 		double trace0 = vnl_trace<double>(RMatrix);
@@ -686,10 +692,10 @@ void NLMFilter< TInputImage, TOutputImage >
 		TMatrix = RMatrix * pMatrix;*/
 
 		vnl_matrix<double> XTrMatrix = XMatrix.transpose();
-		vnl_matrix<double> pXMatrix  = XTrMatrix * RMatrix * XMatrix;
-		vnl_matrix<double> invMatrix = vnl_matrix_inverse<double>(pXMatrix);
-		vnl_matrix<double> sMatrix   = XTrMatrix * RMatrix * RMatrix * XMatrix;
-		vnl_matrix<double> TMatrix   = invMatrix * sMatrix;
+		vnl_matrix<double> pXMatrix  = XTrMatrix * RXMatrix;
+		vnl_matrix<double> invMatrix = vnl_matrix_inverse<double>(pXMatrix).inverse();
+		//vnl_matrix<double> sMatrix   = XTrMatrix * RMatrix * RMatrix * XMatrix;
+		vnl_matrix<double> TMatrix   = invMatrix * BMatrix;
 		double trace2 = vnl_trace<double>(TMatrix);
 		m_TraceMaxOrderMap.insert( TracePairType(sigmaValue, trace2) );
 	}
@@ -706,6 +712,10 @@ void NLMFilter< TInputImage, TOutputImage >
 		vnl_matrix<double> B_i = m_BMatrixMap[sigmaValue_i];
 		vnl_matrix<double> R_i = m_RMatrixMap[sigmaValue_i];
 		vnl_matrix<double> X_i = m_XMatrixMap[sigmaValue_i];
+    vnl_matrix<double> X_it = X_i.transpose();
+    vnl_matrix<double> inverseB_i = vnl_matrix_inverse<double>(B_i).inverse();
+    //std::cout<<"inverseB_i trace:"<<vnl_trace(inverseB_i)<<std::endl;
+
 
 		for( unsigned int j = 0; j < this->m_NumberOfLevelSteps; j++ )  //from 0?
 		{
@@ -714,15 +724,14 @@ void NLMFilter< TInputImage, TOutputImage >
 			vnl_matrix<double> R_j = m_RMatrixMap[sigmaValue_j];
 			vnl_matrix<double> X_j = m_XMatrixMap[sigmaValue_j];
 
-			vnl_matrix<double> p = R_j * X_j;
-			vnl_matrix<double> k = R_i * p;
-			vnl_matrix<double> e = X_i.transpose() * k;
-			vnl_matrix<double> inverse = vnl_matrix_inverse<double>(B_i);
-			vnl_matrix<double> B_ij = inverse * e; 
+			vnl_matrix<double> pmm = R_j * X_j;
+			vnl_matrix<double> kmm = R_i * pmm;
+			vnl_matrix<double> emm = X_it * kmm;
+			vnl_matrix<double> B_ij = inverseB_i * emm;
 
 			std::map< unsigned int,std::vector<unsigned int> >  indexMap;
 
-			for( unsigned int row = 0; row < B_ij.rows(); ++row )
+			for( unsigned int row = 0; row < B_ij.rows(); row++ )
 			{
 				std::vector< unsigned int > nonZeros;
 				for( unsigned int column = 0; column < B_ij.columns(); column++ )
@@ -742,17 +751,19 @@ void NLMFilter< TInputImage, TOutputImage >
 			sigmaCouple.push_back(sigmaValue_j);
 			m_BijMatrixMap.insert( BijPairType(sigmaCouple , B_ij) );
 			m_BijIndexMap.insert( IndexBijPairType(sigmaCouple,indexMap) );
+      std::cout<<"(i,j)="<<sigmaValue_i<<","<<sigmaValue_j<<" Bij trace:"<<vnl_trace(B_ij)<<std::endl;
+
 			
 			/** Compute proper coefficients for order (from Bi) */
 			//vnl_vector<double> X_iOrd0     = X_i.get_column(0);
 			//vnl_vector<double> X_jOrd0     = X_j.get_column(0);
 			//vnl_vector<double> firstVector = R_i * R_j * X_jOrd0;
-			vnl_matrix<double> R_ij	= R_i * R_j;
+			//vnl_matrix<double> R_ij	= R_i * R_j;
 			double BijOrd0 = 0.0;
 			for(unsigned int k=0; k< size; k++)
 			{
 				//BijOrd0 +=  X_iOrd0[k] * firstVector[k];
-				BijOrd0 += R_ij(k,k);
+				BijOrd0 += R_i(k,k)*R_j(k,k);
 			}
 			double BiOrd0_inv = 1.0 / m_BiOrd0Map[sigmaValue_i];
 			BijOrd0 = BiOrd0_inv * BijOrd0;
