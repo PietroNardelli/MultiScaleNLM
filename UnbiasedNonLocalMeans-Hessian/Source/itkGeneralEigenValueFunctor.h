@@ -87,7 +87,7 @@ public:
 	//return static_cast<TOutput>(-1);
     }*/
 
-    const RealType alpha = 1.0 - vcl_exp(- S / ( m_Threshold / ( 1.0 + this->m_Sigma ) ) );
+    const RealType alpha = 1.0 - vcl_exp(- S / ( m_Threshold/this->m_Sigma  ));
 
     /** Avoid divisions by zero (or close to zero). */
     // if( l2 < 0.01 || l3 < 0.01 )    
@@ -100,6 +100,7 @@ public:
     {
     	S1 = alpha * l1 / vcl_sqrt( l2 * l3 ) ; // blob-like
     }
+    
     if( l3 < vnl_math::eps )
     {
       	S2 = NumericTraits<TOutput>::Zero;
@@ -110,13 +111,16 @@ public:
     	S2 = alpha * (1.0 - ( l2 / l3 ) ); // plate-like
     	S3 = alpha * (l2 / l3 ); // line-like
     }
-
-    if( S1 >= S2 && S1 >= S3 )
-    	return static_cast<TOutput>( S1 );
-    else if( S2 >= S1 && S2 >= S3 )
-    	return static_cast<TOutput>( S2 );	
-    else if( S3 >= S1 && S3 >= S2 )
-    	return static_cast<TOutput>( S3 );
+//
+//
+//    if( S1 >= S2 && S1 >= S3 )
+//    	return static_cast<TOutput>( S1 );
+//    else if( S2 >= S1 && S2 >= S3 )
+//      return static_cast<TOutput>( S2 );
+//    else if( S3 >= S1 && S3 >= S2 )
+//    	return static_cast<TOutput>( S3 );
+//    
+    return alpha*(l3+l2)/2;
 
   } // end operator ()
 
