@@ -610,9 +610,10 @@ void NLMFilter< TInputImage, TOutputImage >
 			}		
 		}
 		// Compute R and B Matrixes. They both depends on sigma value
-		vnl_matrix<double>RMatrix(size,size);
-		RMatrix.set_identity();
-		
+		//vnl_matrix<double>RMatrix(size,size);
+		//RMatrix.set_identity();
+		vnl_matrix<double> rvector(size,1);
+    
 		vnl_matrix<double>BMatrix(XColumns,XColumns);
 		BMatrix = itk::NumericTraits<double>::Zero;
 
@@ -631,14 +632,30 @@ void NLMFilter< TInputImage, TOutputImage >
 		
 			double RValue = ::exp( -( (double)( sum ) ) / 2.0 ); 
 			norm += RValue;
-			RMatrix(row,row) = RValue;
+      rvector(row,1) = RValue;
+			//RMatrix(row,row) = RValue;
 		}
 		norm  = 1.0/norm;
-		RMatrix = RMatrix * norm;
+    for ( unsigned int row = 0; row < size; row++ )
+    {
+      rvector(row,1) =rvector(row,1)*norm;
+    }
+    
+		//RMatrix = RMatrix * norm;
 
     //std::cout<<"sigma: "<<sigmaValue<<" Ri trace:"<<vnl_trace(RMatrix)<<std::endl;
     
-    vnl_matrix<double> RXMatrix = RMatrix * XMatrix;
+    //vnl_matrix<double> RXMatrix = RMatrix * XMatrix;
+    vnl_matrix<double>RXMatrix(size,XColumns);
+    
+    for ( unsigned int row = 0; row < size; row++ )
+    {
+      for (unsigned int col =0; col < XColumns; col++)
+      {
+        RXMatrix(row,col)=rvector(row,1)*XMatrix(row,col);
+      }
+    }
+    
 		BMatrix = RXMatrix.transpose() * RXMatrix;
 		
     //std::cout<<"sigma: "<<sigmaValue<<" Bi trace:"<<vnl_trace(BMatrix)<<std::endl;
@@ -651,7 +668,9 @@ void NLMFilter< TInputImage, TOutputImage >
 		for(unsigned int p = 0; p < size ;p++)
 		{
 			//BiOrd0 +=  XOrd0[p] * firstVector[p];
-			BiOrd0 += RMatrix(p,p)*RMatrix(p,p);
+			//BiOrd0 += RMatrix(p,p)*RMatrix(p,p);
+      BiOrd0 += rvector(p,1)*rvector(p,1);
+
 		}
 
 		m_BiOrd0Map.insert( BiOrd0PairType(sigmaValue,BiOrd0) );
@@ -674,13 +693,13 @@ void NLMFilter< TInputImage, TOutputImage >
 		}
 		m_IndexVectorMap.insert( IndexVectorPairType(sigmaValue,indexMap) );
 		m_BMatrixMap.insert( MatrixPairType(sigmaValue,BMatrix) );
-
- 		m_RMatrixMap.insert( MatrixPairType(sigmaValue,RMatrix) );  
- 		m_XMatrixMap.insert( MatrixPairType(sigmaValue,XMatrix) );
-    
+    m_rvectorMap.insert( MatrixPairType(sigmaValue,RXMatrix) );
+ 		m_RXMatrixMap.insert( MatrixPairType(sigmaValue,RXMatrix) );
+      
 
 		// Compute trace for order 0
-		double trace0 = vnl_trace<double>(RMatrix);
+		//double trace0 = vnl_trace<double>(RMatrix);
+    double trace0 = 1.0;
 		m_TraceOrder0Map.insert( TracePairType(sigmaValue, trace0) );
 	
 		// Compute trace for max order
@@ -710,23 +729,20 @@ void NLMFilter< TInputImage, TOutputImage >
       		sigmaValue_i = this->m_MinimumLevel + stepSize * i;
 		
 		vnl_matrix<double> B_i = m_BMatrixMap[sigmaValue_i];
-		vnl_matrix<double> R_i = m_RMatrixMap[sigmaValue_i];
-		vnl_matrix<double> X_i = m_XMatrixMap[sigmaValue_i];
-    vnl_matrix<double> X_it = X_i.transpose();
+		vnl_matrix<double> RX_i = m_RXMatrixMap[sigmaValue_i];
+    vnl_matrix<double> rvector_i = m_rvectorMap[sigmaValue_i];
+    
     vnl_matrix<double> inverseB_i = vnl_matrix_inverse<double>(B_i).inverse();
     //std::cout<<"inverseB_i trace:"<<vnl_trace(inverseB_i)<<std::endl;
 
 		for( unsigned int j = 0; j < this->m_NumberOfLevelSteps; j++ )  //from 0?
 		{
-      			sigmaValue_j = this->m_MinimumLevel + stepSize * j;
-
-			vnl_matrix<double> R_j = m_RMatrixMap[sigmaValue_j];
-			vnl_matrix<double> X_j = m_XMatrixMap[sigmaValue_j];
-
-			vnl_matrix<double> pmm = R_j * X_j;
-			vnl_matrix<double> kmm = R_i * pmm;
-			vnl_matrix<double> emm = X_it * kmm;
-			vnl_matrix<double> B_ij = inverseB_i * emm;
+      sigmaValue_j = this->m_MinimumLevel + stepSize * j;
+      vnl_matrix<double> rvector_j = m_rvectorMap[sigmaValue_j];
+			vnl_matrix<double> RX_j = m_RXMatrixMap[sigmaValue_j];
+			vnl_matrix<double> pmm = RX_j;
+			vnl_matrix<double> kmm = RX_i.transpose() * pmm;
+			vnl_matrix<double> B_ij = inverseB_i * kmm;
 
       
 			std::map< unsigned int,std::vector<unsigned int> >  indexMap;
@@ -763,7 +779,7 @@ void NLMFilter< TInputImage, TOutputImage >
 			for(unsigned int k=0; k< size; k++)
 			{
 				//BijOrd0 +=  X_iOrd0[k] * firstVector[k];
-				BijOrd0 += R_i(k,k)*R_j(k,k);
+				BijOrd0 += rvector_i(k,1)*rvector_j(k,1);
 			}
 			double BiOrd0_inv = 1.0 / m_BiOrd0Map[sigmaValue_i];
 			BijOrd0 = BiOrd0_inv * BijOrd0;

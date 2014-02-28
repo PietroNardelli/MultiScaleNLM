@@ -245,8 +245,8 @@ private:
 	bool 		     m_UseDeltaFeatureStrength;
 
 	MatrixMapType	     m_BMatrixMap;
-	MatrixMapType	     m_RMatrixMap;
-	MatrixMapType	     m_XMatrixMap;
+	MatrixMapType	     m_RXMatrixMap;
+	MatrixMapType	     m_rvectorMap;
 
 	IndexVectorMapType   m_IndexVectorMap;
 	TraceMapType  	     m_TraceOrder0Map;
