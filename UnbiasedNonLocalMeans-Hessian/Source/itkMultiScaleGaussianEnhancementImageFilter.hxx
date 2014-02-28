@@ -249,7 +249,7 @@ MultiScaleGaussianEnhancementImageFilter< TInputImage, TOutputImage >
 	this->GraftNthOutput(2, const_cast<GaussianImageType*>( this->m_GaussianEnhancementFilter->GetGaussianImage() ) );
     }*/
 
-    this->m_GaussianEnhancementFilter->GetGaussianImage(),
+    //this->m_GaussianEnhancementFilter->GetGaussianImage(),
     // Get the maximum so far.
     this->UpdateMaximumResponse( this->m_GaussianEnhancementFilter->GetOutput(), scaleLevel, 
 				 this->m_GaussianEnhancementFilter->GetGaussianImage(),

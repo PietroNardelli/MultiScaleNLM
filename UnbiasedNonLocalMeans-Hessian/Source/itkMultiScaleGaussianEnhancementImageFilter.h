@@ -88,8 +88,8 @@ public:
   typedef typename SingleScaleFilterType::GradientMagnitudeFilterType   GradientMagnitudeFilterType;
 
   typedef typename SingleScaleFilterType::GaussianPixelType    		GaussianPixelType;
-  typedef typename SingleScaleFilterType::GaussianLastImageType  	GaussianImageType;
-  typedef typename SingleScaleFilterType::GaussianLastFilterType   	GaussianFilterType;
+  typedef typename SingleScaleFilterType::GaussianImageType  	GaussianImageType;
+  typedef typename SingleScaleFilterType::GaussianFilterType   	GaussianFilterType;
 
   typedef typename SingleScaleFilterType::GradientPixelType    		GradientPixelType;
   typedef typename SingleScaleFilterType::GradientImageType    		GradientImageType;

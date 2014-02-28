@@ -45,12 +45,14 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
   this->m_GradientMagnitudeFilter->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
 
   // Construct the gaussian filter
-  this->m_GaussianFilterX = GaussianFilterType::New();
-  this->m_GaussianFilterX->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
-  this->m_GaussianFilterY = GaussianFilterType::New();
-  this->m_GaussianFilterY->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
-  this->m_GaussianFilterZ = GaussianLastFilterType::New();
-  this->m_GaussianFilterZ->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+  this->m_GaussianFilter = GaussianFilterType::New();
+  this->m_GaussianFilter->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+//  this->m_GaussianFilterX = GaussianFilterType::New();
+//  this->m_GaussianFilterX->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+//  this->m_GaussianFilterY = GaussianFilterType::New();
+//  this->m_GaussianFilterY->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+//  this->m_GaussianFilterZ = GaussianLastFilterType::New();
+//  this->m_GaussianFilterZ->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
 
   // Construct the gradient filter
   this->m_GradientFilter = GradientFilterType::New();
@@ -75,10 +77,12 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
 
   // Allow progressive memory release
   this->m_GradientMagnitudeFilter->ReleaseDataFlagOn();
-  
-  this->m_GaussianFilterX->ReleaseDataFlagOn();
-  this->m_GaussianFilterY->ReleaseDataFlagOn();
-  this->m_GaussianFilterZ->ReleaseDataFlagOn();
+
+  this->m_GaussianFilter->ReleaseDataFlagOn();
+
+//  this->m_GaussianFilterX->ReleaseDataFlagOn();
+//  this->m_GaussianFilterY->ReleaseDataFlagOn();
+//  this->m_GaussianFilterZ->ReleaseDataFlagOn();
 
   this->m_GradientFilter->ReleaseDataFlagOn();
 
@@ -89,7 +93,8 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
 
   this->ProcessObject::SetNumberOfRequiredOutputs( 4 );
  
-  typename GaussianLastImageType::Pointer gaussianImage = GaussianLastImageType::New();
+  typename GaussianImageType::Pointer gaussianImage = GaussianImageType::New();
+  //  typename GaussianLastImageType::Pointer gaussianImage = GaussianLastImageType::New();
   this->ProcessObject::SetNthOutput( 1, gaussianImage.GetPointer() );
 
   typename GradientImageType::Pointer gradientImage = GradientImageType::New();
@@ -155,9 +160,11 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
 
   this->m_GradientMagnitudeFilter->SetNumberOfThreads( nt );
 
-  this->m_GaussianFilterX->SetNumberOfThreads( nt );
-  this->m_GaussianFilterY->SetNumberOfThreads( nt );
-  this->m_GaussianFilterZ->SetNumberOfThreads( nt );
+  this->m_GaussianFilter->SetNumberOfThreads( nt );
+
+//  this->m_GaussianFilterX->SetNumberOfThreads( nt );
+//  this->m_GaussianFilterY->SetNumberOfThreads( nt );
+//  this->m_GaussianFilterZ->SetNumberOfThreads( nt );
 
   this->m_GradientFilter->SetNumberOfThreads( nt );
 
@@ -198,9 +205,11 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
 
     this->m_GradientMagnitudeFilter->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
 
-    this->m_GaussianFilterX->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
-    this->m_GaussianFilterY->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
-    this->m_GaussianFilterZ->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+    this->m_GaussianFilter->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+
+//    this->m_GaussianFilterX->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+ //   this->m_GaussianFilterY->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
+//    this->m_GaussianFilterZ->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
 
     this->m_GradienteFilter->SetNormalizeAcrossScale( this->m_NormalizeAcrossScale );
 
@@ -236,20 +245,24 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
   }
   
   // Calculate the gradient image.
-  this->m_GaussianFilterX->SetInput( this->GetInput() );
-  this->m_GaussianFilterX->SetSigma( this->m_Sigma );
-  this->m_GaussianFilterX->SetDirection( 0 ); // X direction
+//  this->m_GaussianFilterX->SetInput( this->GetInput() );
+//  this->m_GaussianFilterX->SetSigma( this->m_Sigma );
+//  this->m_GaussianFilterX->SetDirection( 0 ); // X direction
+//
+//  this->m_GaussianFilterY->SetInput( this->m_GaussianFilterX->GetOutput() );
+//  this->m_GaussianFilterY->SetSigma( this->m_Sigma );
+//  this->m_GaussianFilterY->SetDirection( 1 ); // Y direction
+//
+//  this->m_GaussianFilterZ->SetInput( this->m_GaussianFilterY->GetOutput() );
+//  this->m_GaussianFilterZ->SetSigma( this->m_Sigma );
+//  this->m_GaussianFilterZ->SetDirection( 2 ); // Z direction
+//
+//  this->m_GaussianFilterZ->Update();
+  this->m_GaussianFilter->SetInput( this->GetInput() );
+  this->m_GaussianFilter->SetSigma( this->m_Sigma );
+  this->m_GaussianFilter->Update();
 
-  this->m_GaussianFilterY->SetInput( this->m_GaussianFilterX->GetOutput() );
-  this->m_GaussianFilterY->SetSigma( this->m_Sigma );
-  this->m_GaussianFilterY->SetDirection( 1 ); // Y direction
-
-  this->m_GaussianFilterZ->SetInput( this->m_GaussianFilterY->GetOutput() );
-  this->m_GaussianFilterZ->SetSigma( this->m_Sigma );
-  this->m_GaussianFilterZ->SetDirection( 2 ); // Z direction
-
-  this->m_GaussianFilterZ->Update();
-  this->GraftNthOutput(1, this->m_GaussianFilterZ->GetOutput() );
+  this->GraftNthOutput(1, this->m_GaussianFilter->GetOutput() );
 
   // Calculate the gradient image.
   this->m_GradientFilter->SetInput( this->GetInput() );
@@ -319,11 +332,11 @@ GaussianEnhancementImageFilter< TInPixel, TOutPixel >
  * ********************* GetGaussianImage ****************************
  */
 template < typename TInPixel, typename TOutPixel >
-const typename GaussianEnhancementImageFilter< TInPixel, TOutPixel >::GaussianLastImageType *
+const typename GaussianEnhancementImageFilter< TInPixel, TOutPixel >::GaussianImageType *
 GaussianEnhancementImageFilter< TInPixel, TOutPixel >
 ::GetGaussianImage( void ) const
 { 
-	return static_cast<const GaussianLastImageType*>(this->ProcessObject::GetOutput(1));
+	return static_cast<const GaussianImageType*>(this->ProcessObject::GetOutput(1));
 } 
 
 

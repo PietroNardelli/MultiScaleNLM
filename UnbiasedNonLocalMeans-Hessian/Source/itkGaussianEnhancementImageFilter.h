@@ -30,7 +30,7 @@
 #include "itkSymmetricEigenAnalysisImageFilter.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 
-#include "itkRecursiveGaussianImageFilter.h"
+#include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 
 #include "itkHessianRecursiveGaussianImageFilter.h"
@@ -86,15 +86,15 @@ public:
     InputImageType, GradientMagnitudeImageType >  	GradientMagnitudeFilterType;
 
   /** Gaussian(Mean) filter type */
-  typedef RecursiveGaussianImageFilter<
-    InputImageType, InputImageType>		  	GaussianFilterType;
+  typedef SmoothingRecursiveGaussianImageFilter<
+    InputImageType, OutputImageType>		  	GaussianFilterType;
 
-  typedef Image< double, 
-    itkGetStaticConstMacro( ImageDimension ) >    	GaussianLastImageType;
-  typedef RecursiveGaussianImageFilter<
-    InputImageType, GaussianLastImageType>	  	GaussianLastFilterType;
+  typedef Image< OutputPixelType,
+    itkGetStaticConstMacro( ImageDimension ) >    	GaussianImageType;
+  //typedef RecursiveGaussianImageFilter<
+  //  InputImageType, GaussianLastImageType>	  	GaussianLastFilterType;
 
-  typedef typename GaussianLastImageType::PixelType	GaussianPixelType;
+  typedef typename GaussianImageType::PixelType	GaussianPixelType;
 
 
   /** Gradient filter type */
@@ -166,7 +166,7 @@ public:
   /** Set the number of threads to create when executing. */
   void SetNumberOfThreads( ThreadIdType nt );
 
-  const GaussianLastImageType* 	GetGaussianImage( void ) const;
+  const GaussianImageType* 	GetGaussianImage( void ) const;
   const GradientImageType* 	GetGradientImage( void ) const;
   const HessianTensorImageType* GetHessianImage( void ) const;
 
@@ -195,9 +195,11 @@ private:
   /** Member variables. */
   typename GradientMagnitudeFilterType::Pointer   m_GradientMagnitudeFilter;
 
-  typename GaussianFilterType::Pointer	  	  m_GaussianFilterX;
-  typename GaussianFilterType::Pointer		  m_GaussianFilterY;
-  typename GaussianLastFilterType::Pointer	  m_GaussianFilterZ;
+  typename GaussianFilterType::Pointer	  	  m_GaussianFilter;
+
+  //typename GaussianFilterType::Pointer	  	  m_GaussianFilterX;
+  //typename GaussianFilterType::Pointer		  m_GaussianFilterY;
+  //typename GaussianLastFilterType::Pointer	  m_GaussianFilterZ;
 
   typename GradientFilterType::Pointer            m_GradientFilter;
 
