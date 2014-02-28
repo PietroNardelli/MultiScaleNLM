@@ -632,16 +632,16 @@ void NLMFilter< TInputImage, TOutputImage >
 		
 			double RValue = ::exp( -( (double)( sum ) ) / 2.0 ); 
 			norm += RValue;
-      rvector(row,1) = RValue;
+                        rvector(row,0) = RValue;
 			//RMatrix(row,row) = RValue;
 		}
 		norm  = 1.0/norm;
     for ( unsigned int row = 0; row < size; row++ )
     {
-      rvector(row,1) =rvector(row,1)*norm;
+      rvector(row,0) =rvector(row,0)*norm;
     }
     
-		//RMatrix = RMatrix * norm;
+    //RMatrix = RMatrix * norm;
 
     //std::cout<<"sigma: "<<sigmaValue<<" Ri trace:"<<vnl_trace(RMatrix)<<std::endl;
     
@@ -652,13 +652,13 @@ void NLMFilter< TInputImage, TOutputImage >
     {
       for (unsigned int col =0; col < XColumns; col++)
       {
-        RXMatrix(row,col)=rvector(row,1)*XMatrix(row,col);
+        RXMatrix(row,col)=rvector(row,0)*XMatrix(row,col);
       }
     }
     
 		BMatrix = RXMatrix.transpose() * RXMatrix;
 		
-    //std::cout<<"sigma: "<<sigmaValue<<" Bi trace:"<<vnl_trace(BMatrix)<<std::endl;
+    std::cout<<"sigma: "<<sigmaValue<<" Bi trace:"<<vnl_trace(BMatrix)<<std::endl;
 
 		/** Compute proper coefficients for order (from Bi) */
 		//vnl_vector<double> XOrd0   = XMatrix.get_column(0);
@@ -669,7 +669,7 @@ void NLMFilter< TInputImage, TOutputImage >
 		{
 			//BiOrd0 +=  XOrd0[p] * firstVector[p];
 			//BiOrd0 += RMatrix(p,p)*RMatrix(p,p);
-      BiOrd0 += rvector(p,1)*rvector(p,1);
+                	BiOrd0 += rvector(p,0)*rvector(p,0);
 
 		}
 
@@ -779,7 +779,7 @@ void NLMFilter< TInputImage, TOutputImage >
 			for(unsigned int k=0; k< size; k++)
 			{
 				//BijOrd0 +=  X_iOrd0[k] * firstVector[k];
-				BijOrd0 += rvector_i(k,1)*rvector_j(k,1);
+				BijOrd0 += rvector_i(k,0)*rvector_j(k,0);
 			}
 			double BiOrd0_inv = 1.0 / m_BiOrd0Map[sigmaValue_i];
 			BijOrd0 = BiOrd0_inv * BijOrd0;
