@@ -263,10 +263,14 @@ void NLMFilter< TInputImage, TOutputImage >
 			if( pos!=midPosition )
 			{
 				double valueScale = searchInScalesIt.Get();
+        if (centerScale +centerScale/4 <valueScale)
+          continue;
+        
 				std::vector<double> sigmasCouple;
 				sigmasCouple.push_back(centerScale);	
 				sigmasCouple.push_back(valueScale);					
 		
+        
 				VariableVectorType  originalValue = searchInFeaturesIt.Get();
 
 				double B_ij_Ord0 = m_BijOrd0Map[sigmasCouple];
