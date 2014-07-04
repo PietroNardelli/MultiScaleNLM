@@ -1,0 +1,10 @@
+This folder contains the implementations of the NLM (both the clone of the original implementation by Buades et al. -NLM- and the new implementation -PFNLM-) exactly as used to produce the results (performance and execution speed) in the paper:
+
+A. Trist‡n-Vega, V. Garc’a PŽrez, S. Aja-Fern‡ndez, and C.-F. Westin,
+"Efficient and Robust Nonlocal Means Denoising of MR Data Based on Salient Features Matching"
+Computer Methods and Programs in Biomedicine.
+Elsevier, 2011
+
+This source code cannot be compiled as Slicer modules, but only as stand-alone programs (you only need CMake plus an ITK distribution). Also, argument parsing is not based on the Slicer execution model, so you have to be careful when typing the command line.
+
+If you are planning to use the implementation described in the paper referenced above, you should compile the module provided in the root directory of this package (either the Slicer module or the stand-alone version). If you are willing to use our clone of the original implementation, then you have to use the NLM project provided in the current folder.
